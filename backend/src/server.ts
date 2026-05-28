@@ -3,11 +3,11 @@
  * Initialises middleware, mounts route handlers, and starts the HTTP server.
  */
 
-import 'dotenv/config';
-import express from 'express';
+import "dotenv/config";
+import express from "express";
 
 const app = express();
-const PORT = process.env.PORT ?? '3001';
+const PORT = process.env.PORT ?? "3001";
 
 // Parse incoming JSON request bodies.
 app.use(express.json());
