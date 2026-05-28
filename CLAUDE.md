@@ -1,4 +1,4 @@
-# CLAUDE.md — Paper Project Constitution
+# CLAUDE.md — paper Project Constitution
 
 ## What This Project Is
 
@@ -42,7 +42,8 @@ paper/
 ├── CLAUDE.md                  ← you are here
 ├── docs/
 │   ├── architecture.md        ← system design decisions
-│   └── pdf-style-guide.md     ← typography and layout rules for the PDF output
+│   ├── pdf-style-guide.md     ← typography and layout rules for the PDF output
+│   └── tdd-guide.md           ← TDD workflow, testing conventions, and examples
 ├── frontend/                  ← React + TypeScript + Vite
 │   ├── src/
 │   │   ├── components/        ← UI components (one responsibility each)
@@ -62,6 +63,10 @@ paper/
 │   │   │   └── renderer.ts    ← Puppeteer HTML → PDF rendering
 │   │   ├── config.ts          ← All env vars in one place
 │   │   └── server.ts          ← Express app entry point
+│   ├── tests/
+│   │   ├── unit/              ← one file per service (fetcher.test.ts, etc.)
+│   │   ├── integration/       ← route-level tests with a real Express app
+│   │   └── fixtures/          ← sample HTML files, mock responses
 │   ├── tsconfig.json
 │   └── package.json
 └── .env.example
@@ -86,7 +91,21 @@ Each service is a pure function (or close to it): input in, output out, no hidde
 
 ---
 
-## Key Technology Choices & Rationale
+## TDD Is Non-Negotiable
+
+This project is built test-first. See `docs/tdd-guide.md` for the full workflow,
+but the rules in brief:
+
+- **Write the test before the implementation.** Always. No exceptions.
+- **Red → Green → Refactor.** The cycle is the discipline.
+- Every service in `src/services/` has a corresponding `tests/unit/*.test.ts`.
+- Tests are written at the same time as the service — not after, not "later".
+- Claude Code must show the failing test first, then the implementation that makes it pass.
+- `npm test` must pass before a PR is opened. A PR with failing tests is never merged.
+
+---
+
+
 
 | Concern | Choice | Why |
 |---|---|---|
@@ -96,6 +115,8 @@ Each service is a pure function (or close to it): input in, output out, no hidde
 | HTTP server | Express 5 | Familiar, well-documented, minimal magic |
 | Styling (PDF) | Inline CSS in HTML template | Puppeteer needs self-contained HTML |
 | Styling (UI) | CSS Modules or plain CSS | No runtime overhead, scoped styles |
+| Test runner | Vitest | Native TypeScript, fast, same config for backend and frontend |
+| HTTP mocking | `msw` (Mock Service Worker) | Intercepts fetch at the network level; no monkey-patching |
 
 ---
 
@@ -176,11 +197,13 @@ CORS is configured in `backend/src/config.ts` to allow `FRONTEND_ORIGIN` only.
 ## What Good Looks Like (Definition of Done per feature)
 
 A task is done when:
-1. TypeScript compiles with zero errors (`tsc --noEmit`).
-2. The happy path works end-to-end (paste URL → PDF downloads).
-3. At least one error case is handled gracefully (bad URL, timeout, paywalled page).
-4. No `console.log` debugging left in committed code (use a proper logger).
-5. The code could be understood by a new developer reading it cold.
+1. The test was written first and was failing (red) before implementation.
+2. `npm test` passes with no skipped or pending tests.
+3. TypeScript compiles with zero errors (`tsc --noEmit`).
+4. The happy path works end-to-end (paste URL → PDF downloads).
+5. At least one error case is handled and has a corresponding test.
+6. No `console.log` debugging left in committed code (use a proper logger).
+7. The code could be understood by a new developer reading it cold.
 
 ---
 
@@ -204,4 +227,5 @@ At the start of every session, confirm:
 - [ ] `CLAUDE.md` read in full
 - [ ] Current task is one clearly scoped unit of work
 - [ ] The relevant service file(s) identified before writing code
+- [ ] Test file created and failing before implementation starts
 - [ ] Error handling strategy decided before the happy path
